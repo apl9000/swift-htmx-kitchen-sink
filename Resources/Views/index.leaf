@@ -1,5 +1,11 @@
-#extend("layout"):
+#extend("Templates/layout"):
     #export("body"):
-      <h1>#(title)</h1>
+      <p>This is the home page of our website.</p>
+      <p>Welcome to the Swift-HTMX-Kitchen Sink!</p>
+      <p>Explore the various features and examples of HTMX in this kitchen sink.</p>
+      <p>Check out the <a href="/about" class="text-blue-500">About</a> page to learn more about this project.</p>
+      <p>Visit the <a href="/contact" class="text-blue-500">Contact</a> page to get in touch.</p>
+      <p>Don't forget to check out the <a href="/todos" class="text-blue-500">Todos</a> page for a list of tasks.</p>
+      <p>Enjoy exploring!</p>
     #endexport
 #endextend

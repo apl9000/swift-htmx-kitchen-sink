@@ -94,3 +94,8 @@ iOSInjectionProject/
 
 # sqlite
 *.sqlite
+
+.swiftpm
+
+node_modules/
+Public/styles.css
