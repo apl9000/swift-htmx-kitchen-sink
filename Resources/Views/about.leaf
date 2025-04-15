@@ -1,4 +1,4 @@
-#extend("layout"):
+#extend("Templates/layout"):
   #export("body"):
       <p>This is the about page of our website.</p>
   #endexport

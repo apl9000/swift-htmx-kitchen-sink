@@ -1,4 +1,4 @@
-#extend("layout"):
+#extend("Templates/layout"):
     #export("body"):
       <p>This is the home page of our website.</p>
       <p>Welcome to the Swift-HTMX-Kitchen Sink!</p>
