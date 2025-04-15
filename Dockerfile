@@ -31,5 +31,5 @@ COPY . .
 # Expose Vapor's port
 EXPOSE 8080
 
-# Default command: watch + rebuild on change
+# Default command: watch + rebuid on change
 CMD ["watchexec", "-e", "swift,leaf,html,css", "--restart", "--", "swift", "run"]

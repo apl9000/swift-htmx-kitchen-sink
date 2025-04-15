@@ -1,6 +1,12 @@
 import Fluent
 import Vapor
 
+
+struct TodoPageProps: Encodable {
+    let count: Int
+    let todos: [TodoDTO]
+}
+
 struct TodoController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let todos = routes.grouped("todos")
@@ -12,8 +18,13 @@ struct TodoController: RouteCollection {
     }
         
     func index(req: Request) async throws -> View {
-        let count = try await Todo.query(on: req.db).all().map { $0.toDTO() }.count
-        return try await req.view.render("todo", ["count": count])
+        let todos = try await Todo.query(on: req.db).all().map { $0.toDTO() }
+        let count = todos.count
+        let pageProps = TodoPageProps(
+            count: count,
+            todos: todos
+        )
+        return try await req.view.render("todo", pageProps)
     }
 
     func create(req: Request) async throws -> TodoDTO {

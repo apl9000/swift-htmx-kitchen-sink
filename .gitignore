@@ -98,3 +98,4 @@ iOSInjectionProject/
 .swiftpm
 
 node_modules/
+Public/styles.css

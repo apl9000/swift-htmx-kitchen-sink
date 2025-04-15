@@ -3,14 +3,24 @@
     <head>
       <meta charset="utf-8">
       <title>#(title)</title>
-      <link href="/style.css" rel="stylesheet">
+      <link href="styles.css" rel="stylesheet">
+      <script src="http://localhost:35730/livereload.js?snipver=1"></script>
     </head>
-    <body>
-      <h1>#(title)</h1>
-      <p>Welcome to the Leaf template engine!</p>
-      <p>Leaf is a powerful templating engine for Swift.</p>
-      <p>Made easy with tailwind CSS.</p>
-      #import("body")
+    <body class='bg-gray-100'>
+      <header class='bg-gray-600 text-white p-4'>
+        <h1 class='text-3xl'>Swift-HTMX-Kitchen Sink</h1>
+        <nav>
+          <ul class='flex space-x-4'>
+            <li><a href='/'>Home</a></li>
+            <li><a href='/about'>About Me!</a></li>
+            <li><a href='/contact'>Contact</a></li>
+            <li><a href='/todos'>Todos</a></li>
+          </ul>
+        </nav>
+      </header>
+      <main class='p-4'>
+        <h2 class='text-2xl'>#(title)</h2>
+        #import("body")
+      </main>
     </body>
-    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
 </html>
