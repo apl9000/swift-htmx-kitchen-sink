@@ -1,0 +1,8 @@
+<p>Are you sure you want to proceed with this action? This cannot be undone.</p>
+<div class="modal-footer">
+    <button class="btn btn-secondary" @click="modalOpen = false">Cancel</button>
+    <button class="btn btn-danger"
+            @click="modalOpen = false; $dispatch('notify', { message: 'Action confirmed!', type: 'success' })">
+        Confirm
+    </button>
+</div>

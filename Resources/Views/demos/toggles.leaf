@@ -1,0 +1,101 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Toggles &amp; Accordion</h1>
+        <p class="text-muted mb-2">Pure Alpine.js interactive patterns</p>
+
+        <!-- Accordion -->
+        <div class="card">
+            <h3>Accordion</h3>
+            <div x-data="{ open: null }">
+                <div class="accordion-item">
+                    <button class="accordion-trigger" @click="open = open === 1 ? null : 1">
+                        <span>What is HTMX?</span>
+                        <span x-text="open === 1 ? '−' : '+'"></span>
+                    </button>
+                    <div class="accordion-content" x-show="open === 1" x-transition>
+                        <p>HTMX gives you access to AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes. It allows you to build modern user interfaces with the simplicity of hypertext.</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-trigger" @click="open = open === 2 ? null : 2">
+                        <span>What is Alpine.js?</span>
+                        <span x-text="open === 2 ? '−' : '+'"></span>
+                    </button>
+                    <div class="accordion-content" x-show="open === 2" x-transition>
+                        <p>Alpine.js is a rugged, minimal tool for composing behavior directly in your markup. Think of it like jQuery for the modern web — but lighter, more declarative, and reactive.</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <button class="accordion-trigger" @click="open = open === 3 ? null : 3">
+                        <span>Why use them together?</span>
+                        <span x-text="open === 3 ? '−' : '+'"></span>
+                    </button>
+                    <div class="accordion-content" x-show="open === 3" x-transition>
+                        <p>HTMX handles server communication (replacing sections of HTML), while Alpine.js handles client-side interactions (toggles, dropdowns, state). Together they replace most SPA frameworks with simpler, server-rendered HTML.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="card">
+            <h3>Dropdown Menu</h3>
+            <div x-data="{ open: false }" style="position: relative; display: inline-block;">
+                <button class="btn btn-secondary" @click="open = !open">
+                    Options ▾
+                </button>
+                <div x-show="open"
+                     @click.away="open = false"
+                     x-transition
+                     style="position: absolute; top: 100%; left: 0; margin-top: 0.25rem; min-width: 10rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.375rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; display: none;">
+                    <a href="#" style="display: block; padding: 0.5rem 1rem; color: #334155; font-size: 0.875rem;" @click.prevent="open = false; $dispatch('notify', {message:'Edit clicked', type:'info'})">Edit</a>
+                    <a href="#" style="display: block; padding: 0.5rem 1rem; color: #334155; font-size: 0.875rem;" @click.prevent="open = false; $dispatch('notify', {message:'Duplicate clicked', type:'info'})">Duplicate</a>
+                    <a href="#" style="display: block; padding: 0.5rem 1rem; color: #ef4444; font-size: 0.875rem;" @click.prevent="open = false; $dispatch('notify', {message:'Delete clicked', type:'warning'})">Delete</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Switches -->
+        <div class="card">
+            <h3>Toggle Switches</h3>
+            <div x-data="{ notifications: true, darkMode: false, autoSave: true }">
+                <div class="flex items-center justify-between mb-1" style="max-width: 300px;">
+                    <span class="text-sm">Notifications</span>
+                    <label class="toggle">
+                        <input type="checkbox" x-model="notifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between mb-1" style="max-width: 300px;">
+                    <span class="text-sm">Dark Mode</span>
+                    <label class="toggle">
+                        <input type="checkbox" x-model="darkMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between mb-1" style="max-width: 300px;">
+                    <span class="text-sm">Auto-Save</span>
+                    <label class="toggle">
+                        <input type="checkbox" x-model="autoSave">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p class="text-xs text-muted mt-1">
+                    State: notifications=<span x-text="notifications"></span>,
+                    darkMode=<span x-text="darkMode"></span>,
+                    autoSave=<span x-text="autoSave"></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Counter -->
+        <div class="card">
+            <h3>Counter</h3>
+            <div x-data="{ count: 0 }" class="flex items-center gap-1">
+                <button class="btn btn-secondary btn-sm" @click="count--">−</button>
+                <span class="badge" style="font-size: 1rem; padding: 0.25rem 1rem;" x-text="count"></span>
+                <button class="btn btn-secondary btn-sm" @click="count++">+</button>
+            </div>
+        </div>
+    #endexport
+#endextend

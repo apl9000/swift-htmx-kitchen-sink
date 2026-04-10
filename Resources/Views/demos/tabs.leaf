@@ -1,0 +1,42 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Tabs</h1>
+        <p class="text-muted mb-2">Alpine.js manages tab state, HTMX lazy-loads content</p>
+
+        <div class="card" x-data="{ activeTab: 'overview' }">
+            <div class="tab-list">
+                <button class="tab-btn"
+                        :class="activeTab === 'overview' ? 'active' : ''"
+                        @click="activeTab = 'overview'"
+                        hx-get="/demos/tabs/content/overview"
+                        hx-target="#tab-panel"
+                        hx-swap="innerHTML">
+                    Overview
+                </button>
+                <button class="tab-btn"
+                        :class="activeTab === 'features' ? 'active' : ''"
+                        @click="activeTab = 'features'"
+                        hx-get="/demos/tabs/content/features"
+                        hx-target="#tab-panel"
+                        hx-swap="innerHTML">
+                    Features
+                </button>
+                <button class="tab-btn"
+                        :class="activeTab === 'code' ? 'active' : ''"
+                        @click="activeTab = 'code'"
+                        hx-get="/demos/tabs/content/code"
+                        hx-target="#tab-panel"
+                        hx-swap="innerHTML">
+                    Code Example
+                </button>
+            </div>
+
+            <div id="tab-panel" class="tab-content"
+                 hx-get="/demos/tabs/content/overview"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <span class="spinner"></span> Loading...
+            </div>
+        </div>
+    #endexport
+#endextend

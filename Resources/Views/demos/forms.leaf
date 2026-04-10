@@ -1,0 +1,59 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Form Validation</h1>
+        <p class="text-muted mb-2">Server-side validation with inline field errors via HTMX</p>
+
+        <div class="card" id="form-area">
+            <h3>Registration Form</h3>
+            <form hx-post="/demos/forms/validate"
+                  hx-target="#form-area"
+                  hx-swap="outerHTML">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username"
+                           value="#(username)"
+                           class="#if(errors.username): input-error #endif"
+                           placeholder="At least 3 characters">
+                    #if(errors.username):
+                        <div class="form-error">#(errors.username)</div>
+                    #endif
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" name="email"
+                           value="#(email)"
+                           class="#if(errors.email): input-error #endif"
+                           placeholder="you@example.com">
+                    #if(errors.email):
+                        <div class="form-error">#(errors.email)</div>
+                    #endif
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                           class="#if(errors.password): input-error #endif"
+                           placeholder="At least 8 characters">
+                    #if(errors.password):
+                        <div class="form-error">#(errors.password)</div>
+                    #endif
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           class="#if(errors.confirmPassword): input-error #endif">
+                    #if(errors.confirmPassword):
+                        <div class="form-error">#(errors.confirmPassword)</div>
+                    #endif
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Register
+                    <span class="htmx-indicator"><span class="spinner"></span></span>
+                </button>
+            </form>
+        </div>
+    #endexport
+#endextend

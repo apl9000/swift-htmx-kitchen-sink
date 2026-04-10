@@ -1,0 +1,49 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Todos</h1>
+        <p class="text-muted mb-2">
+            <span id="todo-count">#(count.total) total, #(count.completed) done</span>
+        </p>
+
+        <!-- Create form -->
+        <form class="card"
+              hx-post="/todos"
+              hx-target="#todo-list"
+              hx-swap="afterbegin"
+              hx-on::after-request="if(event.detail.successful) this.reset()">
+            <div class="form-row">
+                <div style="flex:1">
+                    <input type="text"
+                           name="title"
+                           placeholder="What needs to be done?"
+                           required
+                           autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span class="htmx-hide">Add Todo</span>
+                    <span class="htmx-indicator"><span class="spinner"></span></span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Todo list -->
+        <table class="mt-2">
+            <thead>
+                <tr>
+                    <th style="width:2.5rem"></th>
+                    <th>Title</th>
+                    <th style="width:8rem" class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="todo-list">
+                #for(todo in todos):
+                    #extend("todos/row")
+                #endfor
+            </tbody>
+        </table>
+
+        #if(count.total == 0):
+            <p class="text-muted text-center mt-2" id="empty-message">No todos yet. Add one above!</p>
+        #endif
+    #endexport
+#endextend

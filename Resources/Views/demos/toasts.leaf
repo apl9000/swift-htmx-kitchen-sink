@@ -1,0 +1,54 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Toast Notifications</h1>
+        <p class="text-muted mb-2">Trigger server-side toasts via HTMX + Alpine.js</p>
+
+        <div class="card">
+            <h3>Trigger a Toast</h3>
+            <p class="text-sm text-muted mb-2">Click a button to send an HTMX request. The server responds with an <code>HX-Trigger</code> header that Alpine.js picks up to display a toast.</p>
+
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+                <button class="btn btn-success"
+                        hx-post="/demos/toasts/trigger"
+                        hx-vals='{"type":"success","message":"Operation completed successfully!"}'
+                        hx-swap="none">
+                    Success
+                </button>
+                <button class="btn btn-danger"
+                        hx-post="/demos/toasts/trigger"
+                        hx-vals='{"type":"error","message":"Something went wrong!"}'
+                        hx-swap="none">
+                    Error
+                </button>
+                <button class="btn btn-secondary"
+                        hx-post="/demos/toasts/trigger"
+                        hx-vals='{"type":"warning","message":"Please check your input."}'
+                        hx-swap="none"
+                        style="background:#f59e0b;color:#fff;border-color:#f59e0b;">
+                    Warning
+                </button>
+                <button class="btn btn-primary"
+                        hx-post="/demos/toasts/trigger"
+                        hx-vals='{"type":"info","message":"FYI: System update scheduled."}'
+                        hx-swap="none">
+                    Info
+                </button>
+            </div>
+        </div>
+
+        <div class="card mt-2">
+            <h3>Client-Side Toasts (Alpine.js)</h3>
+            <p class="text-sm text-muted mb-2">These toasts fire entirely on the client — no server request.</p>
+            <div class="flex gap-1" style="flex-wrap: wrap;">
+                <button class="btn btn-secondary"
+                        @click="$dispatch('notify', { message: 'Client-side toast!', type: 'info' })">
+                    Alpine Toast
+                </button>
+                <button class="btn btn-secondary"
+                        @click="$dispatch('notify', { message: 'Another one!', type: 'success' })">
+                    Another
+                </button>
+            </div>
+        </div>
+    #endexport
+#endextend

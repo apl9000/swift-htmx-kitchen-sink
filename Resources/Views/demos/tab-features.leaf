@@ -1,0 +1,7 @@
+<h3>Features</h3>
+<ul style="list-style: disc; padding-left: 1.5rem;">
+    <li><strong>Lazy loading</strong> — Content is fetched only when the tab is clicked</li>
+    <li><strong>No JavaScript state</strong> — Server renders each panel, Alpine tracks which is active</li>
+    <li><strong>Progressive enhancement</strong> — Works with or without JavaScript (links degrade to full page)</li>
+    <li><strong>Minimal markup</strong> — Each tab is a simple <code>hx-get</code> button</li>
+</ul>

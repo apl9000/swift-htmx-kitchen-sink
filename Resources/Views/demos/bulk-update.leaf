@@ -1,0 +1,107 @@
+#extend("layout"):
+    #export("body"):
+        <h1>Bulk Update</h1>
+        <p class="text-muted mb-2">Multi-select with Alpine.js + batch HTMX actions</p>
+
+        <div class="card" x-data="bulkSelect()">
+            <!-- Action bar -->
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1">
+                    <input type="checkbox" @change="toggleAll($event)" :checked="allSelected">
+                    <span class="text-sm text-muted" x-text="selectedCount + ' selected'"></span>
+                </div>
+                <div class="flex gap-1" x-show="selectedCount > 0">
+                    <button class="btn btn-sm btn-success"
+                            hx-post="/demos/bulk-update/action"
+                            hx-target="#bulk-rows"
+                            hx-swap="innerHTML"
+                            hx-include="[name='ids']"
+                            hx-vals='{"action":"activate"}'
+                            @htmx:after-request="clearSelection()">
+                        Activate
+                    </button>
+                    <button class="btn btn-sm btn-secondary"
+                            hx-post="/demos/bulk-update/action"
+                            hx-target="#bulk-rows"
+                            hx-swap="innerHTML"
+                            hx-include="[name='ids']"
+                            hx-vals='{"action":"deactivate"}'
+                            @htmx:after-request="clearSelection()">
+                        Deactivate
+                    </button>
+                    <button class="btn btn-sm btn-danger"
+                            hx-post="/demos/bulk-update/action"
+                            hx-target="#bulk-rows"
+                            hx-swap="innerHTML"
+                            hx-include="[name='ids']"
+                            hx-vals='{"action":"delete"}'
+                            hx-confirm="Delete selected items?"
+                            @htmx:after-request="clearSelection()">
+                        Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 2.5rem"></th>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bulk-rows">
+                    #for(item in items):
+                    <tr>
+                        <td>
+                            <input type="checkbox"
+                                   name="ids"
+                                   value="#(item.id)"
+                                   @change="updateCount()"
+                                   x-ref="check#(item.id)">
+                        </td>
+                        <td>#(item.name)</td>
+                        <td>
+                            #if(item.status == "active"):
+                                <span class="badge badge-success">Active</span>
+                            #else:
+                                <span class="badge badge-danger">Inactive</span>
+                            #endif
+                        </td>
+                    </tr>
+                    #endfor
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+        function bulkSelect() {
+            return {
+                selectedCount: 0,
+                allSelected: false,
+                toggleAll(event) {
+                    const checked = event.target.checked;
+                    document.querySelectorAll('#bulk-rows input[name="ids"]').forEach(cb => {
+                        cb.checked = checked;
+                    });
+                    this.updateCount();
+                },
+                updateCount() {
+                    const checkboxes = document.querySelectorAll('#bulk-rows input[name="ids"]:checked');
+                    this.selectedCount = checkboxes.length;
+                    const total = document.querySelectorAll('#bulk-rows input[name="ids"]').length;
+                    this.allSelected = this.selectedCount === total && total > 0;
+                },
+                clearSelection() {
+                    document.querySelectorAll('#bulk-rows input[name="ids"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                    this.selectedCount = 0;
+                    this.allSelected = false;
+                }
+            };
+        }
+        </script>
+    #endexport
+#endextend

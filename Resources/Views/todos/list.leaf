@@ -1,0 +1,4 @@
+<!-- Partial: just the list rows (used for HTMX refreshes) -->
+#for(todo in todos):
+    #extend("todos/row")
+#endfor

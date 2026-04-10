@@ -1,0 +1,15 @@
+#for(item in items):
+<tr class="fade-in">
+    <td>
+        <input type="checkbox" name="ids" value="#(item.id)" @change="updateCount()">
+    </td>
+    <td>#(item.name)</td>
+    <td>
+        #if(item.status == "active"):
+            <span class="badge badge-success">Active</span>
+        #else:
+            <span class="badge badge-danger">Inactive</span>
+        #endif
+    </td>
+</tr>
+#endfor

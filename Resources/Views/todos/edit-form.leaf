@@ -1,0 +1,24 @@
+<tr id="todo-#(todo.id)">
+    <td></td>
+    <td colspan="2">
+        <form hx-put="/todos/#(todo.id)"
+              hx-target="#todo-#(todo.id)"
+              hx-swap="outerHTML">
+            <div class="form-row">
+                <div style="flex:1">
+                    <input type="text"
+                           name="title"
+                           value="#(todo.title)"
+                           required
+                           autofocus>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                <button type="button" class="btn btn-sm btn-secondary"
+                        hx-get="/todos"
+                        hx-target="main"
+                        hx-swap="innerHTML"
+                        hx-push-url="false">Cancel</button>
+            </div>
+        </form>
+    </td>
+</tr>

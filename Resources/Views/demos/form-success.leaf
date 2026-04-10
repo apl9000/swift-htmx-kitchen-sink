@@ -1,0 +1,5 @@
+<div class="card" id="form-area">
+    <h3 style="color: #22c55e;">✅ Registration Successful</h3>
+    <p>Welcome, <strong>#(username)</strong>! Your account has been created.</p>
+    <a href="/demos/forms" class="btn btn-secondary mt-2">Try Again</a>
+</div>

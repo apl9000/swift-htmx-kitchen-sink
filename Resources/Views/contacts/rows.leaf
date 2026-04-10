@@ -1,0 +1,19 @@
+#for(contact in contacts):
+<tr class="fade-in">
+    <td>#(contact.firstName) #(contact.lastName)</td>
+    <td class="text-muted">#(contact.email)</td>
+    <td class="text-muted">#(contact.phone)</td>
+    <td><span class="badge">#(contact.company)</span></td>
+</tr>
+#endfor
+#if(hasMore):
+<!-- Infinite scroll sentinel -->
+<tr hx-get="/contacts?page=#(page + 1)#if(query != ""):&q=#(query)#endif"
+    hx-trigger="revealed"
+    hx-swap="outerHTML"
+    hx-indicator="#load-more-spinner">
+    <td colspan="4" class="text-center text-muted">
+        <span id="load-more-spinner" class="htmx-indicator"><span class="spinner"></span> Loading more...</span>
+    </td>
+</tr>
+#endif

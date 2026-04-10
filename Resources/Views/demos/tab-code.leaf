@@ -1,0 +1,12 @@
+<h3>Code Example</h3>
+<pre class="card" style="font-size: 0.8125rem; overflow-x: auto;"><code>&lt;button class="tab-btn"
+        hx-get="/demos/tabs/content/overview"
+        hx-target="#tab-panel"
+        hx-swap="innerHTML"&gt;
+    Overview
+&lt;/button&gt;
+
+&lt;div id="tab-panel" class="tab-content"&gt;
+    &lt;!-- Server-rendered content appears here --&gt;
+&lt;/div&gt;</code></pre>
+<p class="text-sm text-muted mt-1">The server returns plain HTML fragments — no JSON, no client-side templating.</p>
