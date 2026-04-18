@@ -8,7 +8,9 @@
     <script src="https://unpkg.com/htmx.org@2.0.7"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body x-data="{ toasts: [] }" hx-boost="true">
+<body x-data="{ toasts: [] }"
+      @show-toast.camel="toasts.push({id: Date.now(), msg: $event.detail.message, type: $event.detail.type || 'info'}); setTimeout(() => toasts.shift(), 3000)"
+      hx-boost="true">
     <nav>
         <div class="container">
             <a href="/" class="brand">🍳 Kitchen Sink</a>
@@ -29,9 +31,7 @@
     </main>
 
     <!-- Toast container (Alpine.js) -->
-    <div class="toast-container"
-         x-show="toasts.length > 0"
-         @toast.window="toasts.push({id: Date.now(), msg: $event.detail.value, type: $event.detail.type || 'info'}); setTimeout(() => toasts.shift(), 3000)">
+    <div class="toast-container" x-show="toasts.length > 0">
         <template x-for="t in toasts" :key="t.id">
             <div class="toast" :class="'toast-' + t.type" x-text="t.msg"
                  x-transition.duration.300ms></div>

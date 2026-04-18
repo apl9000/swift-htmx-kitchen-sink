@@ -41,11 +41,11 @@
             <p class="text-sm text-muted mb-2">These toasts fire entirely on the client — no server request.</p>
             <div class="flex gap-1" style="flex-wrap: wrap;">
                 <button class="btn btn-secondary"
-                        @click="$dispatch('notify', { message: 'Client-side toast!', type: 'info' })">
+                        @click="$dispatch('showToast', { message: 'Client-side toast!', type: 'info' })">
                     Alpine Toast
                 </button>
                 <button class="btn btn-secondary"
-                        @click="$dispatch('notify', { message: 'Another one!', type: 'success' })">
+                        @click="$dispatch('showToast', { message: 'Another one!', type: 'success' })">
                     Another
                 </button>
             </div>
