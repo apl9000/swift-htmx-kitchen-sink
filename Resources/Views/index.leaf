@@ -1,5 +1,45 @@
 #extend("layout"):
     #export("body"):
-      <h1>#(title)</h1>
+        <h1>HTMX + Alpine.js Kitchen Sink</h1>
+        <p class="text-muted">A Swift/Vapor reference app showcasing HTMX and Alpine.js patterns with Leaf templates.</p>
+
+        <div class="card-grid mt-2">
+            <a href="/todos" class="card card-link">
+                <h3>✅ Todo CRUD</h3>
+                <p>Create, read, update, delete with HTMX. Inline editing, OOB swaps, toggle completion.</p>
+            </a>
+            <a href="/contacts" class="card card-link">
+                <h3>👥 Contacts</h3>
+                <p>Active search with hx-trigger="keyup changed delay:300ms" and infinite scroll pagination.</p>
+            </a>
+            <a href="/demos/tabs" class="card card-link">
+                <h3>📑 Tabs</h3>
+                <p>Server-rendered tab panels loaded via HTMX without page reload.</p>
+            </a>
+            <a href="/demos/modals" class="card card-link">
+                <h3>💬 Modals</h3>
+                <p>Alpine.js modals with HTMX content loading — confirm dialogs and forms.</p>
+            </a>
+            <a href="/demos/forms" class="card card-link">
+                <h3>📝 Form Validation</h3>
+                <p>Server-side validation with inline error display and success feedback.</p>
+            </a>
+            <a href="/demos/toasts" class="card card-link">
+                <h3>🔔 Toast Notifications</h3>
+                <p>Alpine.js toast system triggered by HTMX response headers.</p>
+            </a>
+            <a href="/demos/toggles" class="card card-link">
+                <h3>🔀 Toggles</h3>
+                <p>Alpine.js state management with x-data, x-show, x-bind.</p>
+            </a>
+            <a href="/demos/progress" class="card card-link">
+                <h3>⏳ Progress</h3>
+                <p>Polling with hx-trigger="every 500ms" for progress bar updates.</p>
+            </a>
+            <a href="/demos/bulk-update" class="card card-link">
+                <h3>📦 Bulk Update</h3>
+                <p>Select-all checkbox with bulk operations via HTMX.</p>
+            </a>
+        </div>
     #endexport
 #endextend

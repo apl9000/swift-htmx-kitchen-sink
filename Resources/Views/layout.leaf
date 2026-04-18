@@ -1,8 +1,41 @@
 <!doctype html>
 <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <title>#(title)</title>
-    </head>
-    <body>#import("body")</body>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>#(title) — HTMX Kitchen Sink</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@2.0.7"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body x-data="{ toasts: [] }" hx-boost="true">
+    <nav>
+        <div class="container">
+            <a href="/" class="brand">🍳 Kitchen Sink</a>
+            <a href="/todos">Todos</a>
+            <a href="/contacts">Contacts</a>
+            <a href="/demos/tabs">Tabs</a>
+            <a href="/demos/modals">Modals</a>
+            <a href="/demos/forms">Forms</a>
+            <a href="/demos/toasts">Toasts</a>
+            <a href="/demos/toggles">Toggles</a>
+            <a href="/demos/progress">Progress</a>
+            <a href="/demos/bulk-update">Bulk</a>
+        </div>
+    </nav>
+
+    <main class="container mt-2">
+        #import("body")
+    </main>
+
+    <!-- Toast container (Alpine.js) -->
+    <div class="toast-container"
+         x-show="toasts.length > 0"
+         @toast.window="toasts.push({id: Date.now(), msg: $event.detail.value, type: $event.detail.type || 'info'}); setTimeout(() => toasts.shift(), 3000)">
+        <template x-for="t in toasts" :key="t.id">
+            <div class="toast" :class="'toast-' + t.type" x-text="t.msg"
+                 x-transition.duration.300ms></div>
+        </template>
+    </div>
+</body>
 </html>

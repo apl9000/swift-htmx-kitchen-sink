@@ -6,63 +6,73 @@ final class AppTests: XCTestCase {
     var app: Application!
     
     override func setUp() async throws {
-        self.app = Application(.testing)
+        self.app = try await Application.make(.testing)
         try await configure(app)
         try await app.autoMigrate()
     }
-    
-    override func tearDown() async throws { 
+
+    override func tearDown() async throws {
         try await app.autoRevert()
-        self.app.shutdown()
+        try await app.asyncShutdown()
         self.app = nil
     }
     
-    func testHelloWorld() async throws {
-        try self.app.test(.GET, "hello", afterResponse: { res in
+    func testHomePage() async throws {
+        try await self.app.test(.GET, "/") { res async in
             XCTAssertEqual(res.status, .ok)
-            XCTAssertEqual(res.body.string, "Hello, world!")
-        })
+            XCTAssertTrue(res.body.string.contains("Kitchen Sink"))
+        }
     }
     
-    func testTodoIndex() async throws {
-        let sampleTodos = [Todo(title: "sample1"), Todo(title: "sample2")]
-        try await sampleTodos.create(on: self.app.db)
-        
-        try self.app.test(.GET, "todos", afterResponse: { res in
+    func testTodosIndex() async throws {
+        try await self.app.test(.GET, "todos") { res async in
             XCTAssertEqual(res.status, .ok)
-            XCTAssertEqual(
-                try res.content.decode([TodoDTO].self).sorted(by: { $0.title ?? "" < $1.title ?? "" }),
-                sampleTodos.map { $0.toDTO() }.sorted(by: { $0.title ?? "" < $1.title ?? "" })
-            )
-        })
+            XCTAssertTrue(res.body.string.contains("Todos"))
+        }
+    }
+    
+    func testContactsIndex() async throws {
+        try await self.app.test(.GET, "contacts") { res async in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertTrue(res.body.string.contains("Contacts"))
+        }
+    }
+    
+    func testDemoTabs() async throws {
+        try await self.app.test(.GET, "demos/tabs") { res async in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertTrue(res.body.string.contains("Tabs"))
+        }
+    }
+
+    func testDemoModals() async throws {
+        try await self.app.test(.GET, "demos/modals") { res async in
+            XCTAssertEqual(res.status, .ok)
+        }
+    }
+
+    func testDemoForms() async throws {
+        try await self.app.test(.GET, "demos/forms") { res async in
+            XCTAssertEqual(res.status, .ok)
+        }
+    }
+    
+    func testDemoToasts() async throws {
+        try await self.app.test(.GET, "demos/toasts") { res async in
+            XCTAssertEqual(res.status, .ok)
+        }
     }
     
     func testTodoCreate() async throws {
-        let newDTO = TodoDTO(id: nil, title: "test")
-        
-        try await self.app.test(.POST, "todos", beforeRequest: { req in
-            try req.content.encode(newDTO)
-        }, afterResponse: { res in
-            XCTAssertEqual(res.status, .ok)
-            let models = try await Todo.query(on: self.app.db).all()
-            XCTAssertEqual(models.map { $0.toDTO().title }, [newDTO.title])
-        })
-    }
-    
-    func testTodoDelete() async throws {
-        let testTodos = [Todo(title: "test1"), Todo(title: "test2")]
-        try await testTodos.create(on: app.db)
-        
-        try await self.app.test(.DELETE, "todos/\(testTodos[0].requireID())", afterResponse: { res in
-            XCTAssertEqual(res.status, .noContent)
-            let model = try await Todo.find(testTodos[0].id, on: self.app.db)
-            XCTAssertNil(model)
-        })
-    }
-}
-
-extension TodoDTO: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.id == rhs.id && lhs.title == rhs.title
+        try await self.app.test(.POST, "todos",
+            beforeRequest: { req async throws in
+                req.headers.contentType = .urlEncodedForm
+                try req.content.encode(["title": "Test todo"], as: .urlEncodedForm)
+            },
+            afterResponse: { res async in
+                XCTAssertEqual(res.status, .ok)
+                XCTAssertTrue(res.body.string.contains("Test todo"))
+            }
+        )
     }
 }

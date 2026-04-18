@@ -18,7 +18,7 @@ A comprehensive reference application for **HTMX + Alpine.js** patterns built wi
 # Clone and run (SQLite, zero config)
 swift run
 
-# Open http://localhost:8080
+# Open http://localhost:8888
 ```
 
 ## Database Toggle

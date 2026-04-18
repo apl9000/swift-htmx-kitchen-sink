@@ -12,24 +12,59 @@
 #      Start app: docker-compose up app
 #       Stop all: docker-compose down
 #
-version: '3.7'
-
 x-shared_environment: &shared_environment
   LOG_LEVEL: ${LOG_LEVEL:-debug}
-  
+  DB_TYPE: ${DB_TYPE:-sqlite}
+
 services:
   app:
-    image: swift-kitchen-sink:latest
+    image: swift-htmx-kitchen-sink:latest
     build:
       context: .
     environment:
       <<: *shared_environment
     ports:
-      - '8080:8080'
-    # user: '0' # uncomment to run as root for testing purposes even though Dockerfile defines 'vapor' user.
-    command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+      - '8888:8888'
+    command: ["serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8888"]
+
+  # PostgreSQL mode: docker compose --profile postgres up
+  app-postgres:
+    image: swift-htmx-kitchen-sink:latest
+    build:
+      context: .
+    environment:
+      <<: *shared_environment
+      DB_TYPE: postgres
+      DATABASE_URL: postgres://vapor:vapor@db:5432/kitchen_sink
+    ports:
+      - '8888:8888'
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - postgres
+    command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8888"]
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vapor
+      POSTGRES_PASSWORD: vapor
+      POSTGRES_DB: kitchen_sink
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vapor -d kitchen_sink"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    profiles:
+      - postgres
+
   migrate:
-    image: swift-kitchen-sink:latest
+    image: swift-htmx-kitchen-sink:latest
     build:
       context: .
     environment:
@@ -37,8 +72,9 @@ services:
     command: ["migrate", "--yes"]
     deploy:
       replicas: 0
+
   revert:
-    image: swift-kitchen-sink:latest
+    image: swift-htmx-kitchen-sink:latest
     build:
       context: .
     environment:
@@ -46,3 +82,6 @@ services:
     command: ["migrate", "--revert", "--yes"]
     deploy:
       replicas: 0
+
+volumes:
+  pgdata:
