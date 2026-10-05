@@ -75,4 +75,35 @@ final class AppTests: XCTestCase {
             }
         )
     }
+
+    func testToastTriggerEncodesDynamicMessageAsValidJSON() async throws {
+        let message = #"Say "hello" — done"#
+
+        try await self.app.test(.POST, "demos/toasts/trigger",
+            beforeRequest: { req async throws in
+                req.headers.contentType = .urlEncodedForm
+                try req.content.encode(
+                    ["type": "success", "message": message],
+                    as: .urlEncodedForm
+                )
+            },
+            afterResponse: { res async throws in
+                XCTAssertEqual(res.status, .ok)
+                let trigger = try XCTUnwrap(res.headers.first(name: "HX-Trigger"))
+                let decoded = try JSONDecoder().decode(ToastTrigger.self, from: Data(trigger.utf8))
+
+                XCTAssertEqual(decoded.showToast.message, message)
+                XCTAssertEqual(decoded.showToast.type, "success")
+            }
+        )
+    }
+}
+
+private struct ToastTrigger: Decodable {
+    struct Toast: Decodable {
+        let message: String
+        let type: String
+    }
+
+    let showToast: Toast
 }
