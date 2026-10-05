@@ -26,13 +26,15 @@ public func configure(_ app: Application) async throws {
             let user = Environment.get("DB_USER") ?? "vapor"
             let pass = Environment.get("DB_PASS") ?? "vapor"
             let name = Environment.get("DB_NAME") ?? "kitchen_sink"
-            app.databases.use(.postgres(
+            let configuration = SQLPostgresConfiguration(
                 hostname: host,
                 port: port,
                 username: user,
                 password: pass,
-                database: name
-            ), as: .psql)
+                database: name,
+                tls: .disable
+            )
+            app.databases.use(.postgres(configuration: configuration), as: .psql)
         }
     } else {
         app.databases.use(DatabaseConfigurationFactory.sqlite(.file("db.sqlite")), as: .sqlite)
