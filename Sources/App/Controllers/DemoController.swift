@@ -75,14 +75,15 @@ struct DemoController: RouteCollection {
             return try await view.encodeResponse(for: req).get()
         }
 
-        let response = Response(status: .ok, body: .init(string: """
+        let body = """
         <div class="card">
             <p>✅ Message sent from <strong>\(name)</strong>: "\(message)"</p>
         </div>
-        """))
-        response.headers.replaceOrAdd(name: "Content-Type", value: "text/html")
-        response.headers.replaceOrAdd(name: "HX-Trigger", value: #"{"showToast":{"message":"Form submitted!","type":"success"}, "closeModal":true}"#)
-        return response
+        """
+        return try HTMXResponse.html(body, trigger: HTMXTrigger(
+            showToast: .init(message: "Form submitted!", type: "success"),
+            closeModal: true
+        ))
     }
 
     // MARK: - Forms
@@ -142,12 +143,9 @@ struct DemoController: RouteCollection {
         }
 
         let input = try req.content.decode(ToastInput.self)
-        let response = Response(status: .ok, body: .init(string: ""))
-        response.headers.replaceOrAdd(name: "Content-Type", value: "text/html")
-        response.headers.replaceOrAdd(name: "HX-Trigger", value: """
-        {"showToast":{"message":"\(input.message)","type":"\(input.type)"}}
-        """)
-        return response
+        return try HTMXResponse.html("", trigger: HTMXTrigger(
+            showToast: .init(message: input.message, type: input.type)
+        ))
     }
 
     // MARK: - Toggles
@@ -170,7 +168,7 @@ struct DemoController: RouteCollection {
         tasks[String(taskId)] = 0
         req.application.storage[ProgressTaskKey.self] = tasks
 
-        let response = Response(status: .ok, body: .init(string: """
+        let body = """
         <div id="progress-area"
              hx-get="/demos/progress/poll/\(taskId)"
              hx-trigger="load delay:500ms"
@@ -180,9 +178,8 @@ struct DemoController: RouteCollection {
             </div>
             <p class="text-sm text-muted mt-1">Starting...</p>
         </div>
-        """))
-        response.headers.replaceOrAdd(name: "Content-Type", value: "text/html")
-        return response
+        """
+        return try HTMXResponse.html(body)
     }
 
     func progressPoll(req: Request) async throws -> Response {
@@ -201,20 +198,20 @@ struct DemoController: RouteCollection {
             cleanTasks.removeValue(forKey: taskId)
             req.application.storage[ProgressTaskKey.self] = cleanTasks
 
-            let response = Response(status: .ok, body: .init(string: """
+            let body = """
             <div id="progress-area">
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: 100%">100%</div>
                 </div>
                 <p class="text-sm mt-1" style="color: #22c55e">✅ Task complete!</p>
             </div>
-            """))
-            response.headers.replaceOrAdd(name: "Content-Type", value: "text/html")
-            response.headers.replaceOrAdd(name: "HX-Trigger", value: #"{"showToast":{"message":"Task completed!","type":"success"}}"#)
-            return response
+            """
+            return try HTMXResponse.html(body, trigger: HTMXTrigger(
+                showToast: .init(message: "Task completed!", type: "success")
+            ))
         }
 
-        let response = Response(status: .ok, body: .init(string: """
+        let body = """
         <div id="progress-area"
              hx-get="/demos/progress/poll/\(taskId)"
              hx-trigger="load delay:500ms"
@@ -224,9 +221,8 @@ struct DemoController: RouteCollection {
             </div>
             <p class="text-sm text-muted mt-1">Processing... \(current)%</p>
         </div>
-        """))
-        response.headers.replaceOrAdd(name: "Content-Type", value: "text/html")
-        return response
+        """
+        return try HTMXResponse.html(body)
     }
 
     // MARK: - Bulk Update
@@ -276,9 +272,9 @@ struct DemoController: RouteCollection {
 
         let view = try await req.view.render("demos/bulk-rows", BulkContext(items: items))
         let response = try await view.encodeResponse(for: req).get()
-        response.headers.replaceOrAdd(name: "HX-Trigger", value: """
-        {"showToast":{"message":"\(message)","type":"success"}}
-        """)
+        try HTMXResponse.setTrigger(HTMXTrigger(
+            showToast: .init(message: message, type: "success")
+        ), on: response)
         return response
     }
 }
