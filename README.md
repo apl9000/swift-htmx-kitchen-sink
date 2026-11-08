@@ -42,12 +42,14 @@ DB_TYPE=postgres DATABASE_URL=postgres://vapor:vapor@localhost:5432/kitchen_sink
 ## Docker
 
 ```bash
-# SQLite mode (default)
+# SQLite mode (default). Compose sets APP_RUNTIME_MODE=local.
 docker-compose up app
 
 # PostgreSQL mode
 docker-compose --profile postgres up
 ```
+
+The image command uses Vapor's production environment. That is not deployed mode. Without `APP_RUNTIME_MODE`, the process exits before it listens. Local compose sets `APP_RUNTIME_MODE=local` and must not be copied onto Azure.
 
 ## Demos
 
@@ -107,6 +109,13 @@ Public/css/styles.css        # All styles (~500 lines)
 | `DB_USER` | `vapor` | PostgreSQL user |
 | `DB_PASS` | `vapor` | PostgreSQL password |
 | `DB_NAME` | `kitchen_sink` | PostgreSQL database |
+| `APP_RUNTIME_MODE` | local when unset in development or testing | `local`, `staging`, or `production` |
+
+Unset mode fails closed when the Vapor environment is production or when Azure Container Apps / App Service marker variables are present. Local mode also fails closed if deployed host, Entra, or Front Door variables are set. Staging and production inputs, and the CI variables that publish an image, are listed in [`deploy/APP-CONTRACT.md`](deploy/APP-CONTRACT.md). The example values in [`deploy/azure-app.inputs.example.json`](deploy/azure-app.inputs.example.json) are placeholders.
+
+One-time Entra, Container Apps, Front Door, and GitHub Environment setup stays in HQ (access standard PR 668 and deployment draft PR 669). Those pull requests were not readable while this template was prepared, so this README does not repeat them.
+
+Staging serves browsers through Container Apps Easy Auth and Microsoft Entra. Production additionally requires Azure Front Door origin authentication and a public host match. `/health` answers unauthenticated `GET` and `HEAD` only. A site that needs extra authorization assigns `app.accessAuthorizer` in `configure.swift`; the default does not look at roles or client-specific claims.
 
 ## Tests
 

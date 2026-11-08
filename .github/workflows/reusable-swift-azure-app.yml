@@ -1,0 +1,288 @@
+# Reusable jobs for this repository. Callers in this repo use a relative path.
+# Another repository must not reference this file as a shared workflow until it
+# exists on the default branch, and then only at a pinned commit. Nothing here
+# creates Azure identities, secrets, or ingress.
+name: Swift Azure app
+
+on:
+  workflow_call:
+    inputs:
+      azure_deploy_enabled:
+        description: Must be the string true before an image is published or a container app is updated.
+        type: string
+        required: false
+        default: ""
+      azure_tenant_id:
+        type: string
+        required: false
+        default: ""
+      azure_subscription_id:
+        type: string
+        required: false
+        default: ""
+      azure_client_id_publish:
+        description: OIDC client limited to push images. Not a client secret.
+        type: string
+        required: false
+        default: ""
+      azure_client_id_staging:
+        description: OIDC client limited to the staging container app.
+        type: string
+        required: false
+        default: ""
+      azure_client_id_production:
+        description: OIDC client limited to the production container app.
+        type: string
+        required: false
+        default: ""
+      acr_name:
+        type: string
+        required: false
+        default: ""
+      image_repository:
+        description: Registry repository without a tag or digest, for example example.azurecr.io/app.
+        type: string
+        required: false
+        default: ""
+      staging_resource_group:
+        type: string
+        required: false
+        default: ""
+      staging_container_app:
+        type: string
+        required: false
+        default: ""
+      staging_base_url:
+        description: https origin used for the staging auth gate. No path or trailing slash.
+        type: string
+        required: false
+        default: ""
+      production_resource_group:
+        type: string
+        required: false
+        default: ""
+      production_container_app:
+        type: string
+        required: false
+        default: ""
+      production_base_url:
+        type: string
+        required: false
+        default: ""
+      image_digest:
+        description: sha256 digest supplied by the production dispatch. Ignored on pull requests and main pushes.
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    container:
+      image: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and test
+        run: swift test --num-workers 1
+
+  container-build:
+    if: github.event_name == 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image without logging in or pushing
+        run: docker build --pull -t "local/app:${GITHUB_SHA}" .
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      digest: ${{ steps.expose.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pre
+        name: Validate publish prerequisites
+        env:
+          TARGET: staging
+          AZURE_DEPLOY_ENABLED: ${{ inputs.azure_deploy_enabled }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
+          AZURE_CLIENT_ID_PUBLISH: ${{ inputs.azure_client_id_publish }}
+          AZURE_CLIENT_ID_STAGING: ${{ inputs.azure_client_id_staging }}
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE_REPOSITORY: ${{ inputs.image_repository }}
+          STAGING_RESOURCE_GROUP: ${{ inputs.staging_resource_group }}
+          STAGING_CONTAINER_APP: ${{ inputs.staging_container_app }}
+          STAGING_BASE_URL: ${{ inputs.staging_base_url }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" != "push" || "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "refusing to publish from ${GITHUB_EVENT_NAME} ${GITHUB_REF}" >&2
+            exit 1
+          fi
+          set +e
+          bash .github/scripts/validate-azure-deploy-inputs.sh
+          code=$?
+          set -e
+          if [[ "$code" -eq 10 ]]; then
+            {
+              echo "### Image was not published"
+              echo "AZURE_DEPLOY_ENABLED is not true. Tests can still run, but no registry push and no staging deploy were performed."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$code" -ne 0 ]]; then
+            exit "$code"
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "tag=${IMAGE_REPOSITORY}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Azure for registry push
+        if: steps.pre.outputs.publish == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id_publish }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+
+      - name: Log in to the registry
+        if: steps.pre.outputs.publish == 'true'
+        run: az acr login --name "${{ inputs.acr_name }}"
+
+      - name: Build image locally when publish is not configured
+        if: steps.pre.outputs.publish != 'true'
+        run: docker build --pull -t "local/app:${GITHUB_SHA}" .
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.pre.outputs.publish == 'true'
+
+      - id: build
+        name: Push one immutable image
+        if: steps.pre.outputs.publish == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ steps.pre.outputs.tag }}
+
+      - name: Require a digest from the push
+        if: steps.pre.outputs.publish == 'true' && steps.build.outputs.digest == ''
+        run: |
+          echo "the registry push did not return an image digest" >&2
+          exit 1
+
+      - id: expose
+        name: Record the pushed digest
+        if: steps.pre.outputs.publish == 'true'
+        run: |
+          echo "digest=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Published digest"
+            echo '`${{ steps.build.outputs.digest }}`'
+            echo "Staging deploy, when it runs, uses this digest and does not build another image."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.publish.outputs.digest != ''
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    # Required reviewers are a GitHub Environment setting. This key does not create them.
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Azure for the staging app
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id_staging }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+      - name: Refuse a stale main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          bash .github/scripts/stale-guard.sh "${GITHUB_SHA}" "$latest"
+      - name: Update the existing staging app and verify the auth gate
+        env:
+          TARGET: staging
+          AZURE_DEPLOY_ENABLED: "true"
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE_REPOSITORY: ${{ inputs.image_repository }}
+          IMAGE_DIGEST: ${{ needs.publish.outputs.digest }}
+          RESOURCE_GROUP: ${{ inputs.staging_resource_group }}
+          CONTAINER_APP_NAME: ${{ inputs.staging_container_app }}
+          BASE_URL: ${{ inputs.staging_base_url }}
+        run: bash .github/scripts/deploy-containerapp-image.sh
+
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    # Required reviewers are a GitHub Environment setting. This key does not create them.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the requested digest and production inputs
+        env:
+          TARGET: production
+          AZURE_DEPLOY_ENABLED: ${{ inputs.azure_deploy_enabled }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
+          AZURE_CLIENT_ID_PRODUCTION: ${{ inputs.azure_client_id_production }}
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE_REPOSITORY: ${{ inputs.image_repository }}
+          PRODUCTION_RESOURCE_GROUP: ${{ inputs.production_resource_group }}
+          PRODUCTION_CONTAINER_APP: ${{ inputs.production_container_app }}
+          PRODUCTION_BASE_URL: ${{ inputs.production_base_url }}
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "production deploy only runs from an explicit dispatch" >&2
+            exit 1
+          fi
+          bash .github/scripts/validate-azure-deploy-inputs.sh
+      - name: Log in to Azure for the production app
+        uses: azure/login@v2
+        with:
+          client-id: ${{ inputs.azure_client_id_production }}
+          tenant-id: ${{ inputs.azure_tenant_id }}
+          subscription-id: ${{ inputs.azure_subscription_id }}
+      - name: Deploy the supplied digest and verify the auth gate
+        env:
+          TARGET: production
+          AZURE_DEPLOY_ENABLED: "true"
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE_REPOSITORY: ${{ inputs.image_repository }}
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+          RESOURCE_GROUP: ${{ inputs.production_resource_group }}
+          CONTAINER_APP_NAME: ${{ inputs.production_container_app }}
+          BASE_URL: ${{ inputs.production_base_url }}
+        run: bash .github/scripts/deploy-containerapp-image.sh

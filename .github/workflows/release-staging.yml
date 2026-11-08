@@ -1,0 +1,31 @@
+# Push to main runs tests, publishes one digest when inputs are valid, and
+# updates the existing staging container app. It does not deploy production.
+name: Main staging release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  app:
+    uses: ./.github/workflows/reusable-swift-azure-app.yml
+    with:
+      azure_deploy_enabled: ${{ vars.AZURE_DEPLOY_ENABLED }}
+      azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+      azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      azure_client_id_publish: ${{ vars.AZURE_CLIENT_ID_PUBLISH }}
+      azure_client_id_staging: ${{ vars.AZURE_CLIENT_ID_STAGING }}
+      acr_name: ${{ vars.ACR_NAME }}
+      image_repository: ${{ vars.IMAGE_REPOSITORY }}
+      staging_resource_group: ${{ vars.STAGING_RESOURCE_GROUP }}
+      staging_container_app: ${{ vars.STAGING_CONTAINER_APP }}
+      staging_base_url: ${{ vars.STAGING_BASE_URL }}

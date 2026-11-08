@@ -1,0 +1,44 @@
+{
+  "notes": [
+    "Placeholders only. The app rejects the nil GUID and refuses to boot if these values are copied into a real environment unchanged.",
+    "Do not reuse another site's tenant, domain, client id, or Front Door id.",
+    "App runtime values are Container App environment variables and secrets. Workflow values are GitHub Actions variables. This template does not create either."
+  ],
+  "appRuntime": {
+    "APP_RUNTIME_MODE": "staging",
+    "PUBLIC_HOST": "staging.example.com",
+    "ORIGIN_HOST": "",
+    "ENTRA_TENANT_ID": "00000000-0000-0000-0000-000000000000",
+    "ENTRA_CLIENT_ID": "00000000-0000-0000-0000-000000000000",
+    "ENTRA_AUDIENCE": "",
+    "ENTRA_ISSUER": "",
+    "ENTRA_JWKS_URL": "",
+    "FRONTDOOR_ID": "",
+    "ORIGIN_AUTH_HEADER": "",
+    "ORIGIN_AUTH_SECRET": ""
+  },
+  "productionOnlyAppRuntime": {
+    "APP_RUNTIME_MODE": "production",
+    "PUBLIC_HOST": "app.example.com",
+    "ORIGIN_HOST": "app.internal.azurecontainerapps.io",
+    "FRONTDOOR_ID": "00000000-0000-0000-0000-000000000000",
+    "ORIGIN_AUTH_HEADER": "X-App-Origin-Auth",
+    "ORIGIN_AUTH_SECRET": "<32+ character secret injected by Front Door, never committed>"
+  },
+  "githubActionsVariables": {
+    "AZURE_DEPLOY_ENABLED": "false",
+    "AZURE_TENANT_ID": "00000000-0000-0000-0000-000000000000",
+    "AZURE_SUBSCRIPTION_ID": "00000000-0000-0000-0000-000000000000",
+    "AZURE_CLIENT_ID_PUBLISH": "00000000-0000-0000-0000-000000000000",
+    "AZURE_CLIENT_ID_STAGING": "00000000-0000-0000-0000-000000000000",
+    "AZURE_CLIENT_ID_PRODUCTION": "00000000-0000-0000-0000-000000000000",
+    "ACR_NAME": "exampleacr",
+    "IMAGE_REPOSITORY": "exampleacr.azurecr.io/app",
+    "STAGING_RESOURCE_GROUP": "rg-example",
+    "STAGING_CONTAINER_APP": "app-staging",
+    "STAGING_BASE_URL": "https://staging.example.com",
+    "PRODUCTION_RESOURCE_GROUP": "rg-example",
+    "PRODUCTION_CONTAINER_APP": "app-prod",
+    "PRODUCTION_BASE_URL": "https://app.example.com"
+  }
+}

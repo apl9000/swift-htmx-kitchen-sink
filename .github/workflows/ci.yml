@@ -1,0 +1,19 @@
+# Pull requests compile, test, and build a local image. They do not receive
+# an OIDC token and they do not push or deploy.
+name: Pull request
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    uses: ./.github/workflows/reusable-swift-azure-app.yml
+    with:
+      azure_deploy_enabled: "false"

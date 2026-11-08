@@ -12,6 +12,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.6.0"),
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
         .package(url: "https://github.com/vapor/leaf.git", from: "4.3.0"),
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "5.2.0"),
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.12.0"),
     ],
     targets: [
         .executableTarget(
@@ -22,6 +24,7 @@ let package = Package(
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "Vapor", package: "vapor"),
+                .product(name: "JWTKit", package: "jwt-kit"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -30,6 +33,8 @@ let package = Package(
             dependencies: [
                 .target(name: "App"),
                 .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "JWTKit", package: "jwt-kit"),
+                .product(name: "_CryptoExtras", package: "swift-crypto"),
             ],
             swiftSettings: swiftSettings
         )

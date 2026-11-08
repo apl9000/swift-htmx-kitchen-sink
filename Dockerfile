@@ -52,4 +52,6 @@ USER vapor:vapor
 EXPOSE 8888
 
 ENTRYPOINT ["./App"]
+# Vapor's "production" environment is not APP_RUNTIME_MODE. The process
+# refuses to serve until APP_RUNTIME_MODE is set explicitly.
 CMD ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8888"]
