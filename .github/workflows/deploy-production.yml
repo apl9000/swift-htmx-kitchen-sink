@@ -1,0 +1,35 @@
+# Explicit production deploy of a digest that main already published.
+# This file does not build an image. Required reviewers belong to the
+# production GitHub Environment; they are not declared here.
+name: Production deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: "sha256 digest already published from main. Example: sha256:abc..."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  app:
+    uses: ./.github/workflows/reusable-swift-azure-app.yml
+    with:
+      azure_deploy_enabled: ${{ vars.AZURE_DEPLOY_ENABLED }}
+      azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+      azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      azure_client_id_production: ${{ vars.AZURE_CLIENT_ID_PRODUCTION }}
+      acr_name: ${{ vars.ACR_NAME }}
+      image_repository: ${{ vars.IMAGE_REPOSITORY }}
+      production_resource_group: ${{ vars.PRODUCTION_RESOURCE_GROUP }}
+      production_container_app: ${{ vars.PRODUCTION_CONTAINER_APP }}
+      production_base_url: ${{ vars.PRODUCTION_BASE_URL }}
+      image_digest: ${{ inputs.image_digest }}

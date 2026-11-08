@@ -6,13 +6,28 @@ import Leaf
 import Vapor
 
 public func configure(_ app: Application) async throws {
+    try await configure(app, accessEnvironment: AccessEnvironment.current())
+}
+
+func configure(_ app: Application, accessEnvironment: [String: String]) async throws {
+    let access = try AccessConfiguration.load(
+        from: accessEnvironment,
+        vaporEnvironmentName: app.environment.name
+    )
+    app.accessConfiguration = access
+    if app.idTokenVerifier == nil {
+        app.idTokenVerifier = EntraIDTokenVerifier()
+    }
+    app.logger.notice("Access configuration \(access)")
+
     // Default port: 8888
     app.http.server.configuration.port = 8888
 
-    // Static file serving
+    // Privacy headers wrap every response, including access failures.
+    // The access gate runs before static files so assets are not anonymous.
+    app.middleware.use(StagingPrivacyMiddleware())
+    app.middleware.use(AccessGateMiddleware())
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-
-    // HTMX request detection
     app.middleware.use(HTMXMiddleware())
 
     // Database: toggle via DB_TYPE env var (sqlite | postgres)
